@@ -6,13 +6,14 @@ approvers:
 - mimowo
 
 reviewers:
-- alculquicondor
-- denkensk
-- kerthcet
-- mimowo
-- tenzen-y
-- trasc
-
-emeritus_approvers:
-- ahg-g
-- denkensk
+- anishasthana
+- astefanutti
+- ChristianZaccaria
+- dimakis
+- Fiona-Waters
+- jbusche
+- kpostoffice
+- maxusmusti
+- MichaelClifford
+- sutaakar
+- tedhtchang
