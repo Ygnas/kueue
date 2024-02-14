@@ -160,4 +160,3 @@ Changes since `v0.5.0`:
 
 ### Other (Cleanup or Flake)
 
-- Expose utilization functions to setup jobframework reconcilers and webhooks (#1630, @tenzen-y)
