@@ -521,6 +521,15 @@ var _ = ginkgo.Describe("Pod groups", func() {
 					}
 				}, util.Timeout, util.Interval).Should(gomega.Succeed())
 			})
+			ginkgo.By("Check that the preempted pods are deleted", func() {
+				gomega.Eventually(func(g gomega.Gomega) {
+					var p corev1.Pod
+					for _, origPod := range defaultPriorityGroup {
+						origKey := client.ObjectKeyFromObject(origPod)
+						g.Expect(k8sClient.Get(ctx, origKey, &p)).To(testing.BeNotFoundError())
+					}
+				}, util.Timeout, util.Interval).Should(gomega.Succeed())
+			})
 
 			ginkgo.By("Verify the high-priority pods are scheduled", func() {
 				gomega.Eventually(func(g gomega.Gomega) {
