@@ -706,22 +706,29 @@ func (r *WorkloadReconciler) Update(e event.UpdateEvent) bool {
 				}
 			}
 		})
-
-		if !immediate {
+		var backoff time.Duration
+		if wlCopy.Status.RequeueState != nil && wlCopy.Status.RequeueState.RequeueAt != nil {
+			backoff = time.Until(wl.Status.RequeueState.RequeueAt.Time)
+		}
+		if backoff <= 0 {
+			if !r.queues.AddOrUpdateWorkload(wlCopy) {
+				log.V(2).Info("Queue for workload didn't exist; ignored for now")
+			}
+		} else {
 			log.V(3).Info("Workload to be requeued after backoff", "backoff", backoff, "requeueAt", wl.Status.RequeueState.RequeueAt.Time)
 			time.AfterFunc(backoff, func() {
 				updatedWl := kueue.Workload{}
 				err := r.client.Get(ctx, client.ObjectKeyFromObject(wl), &updatedWl)
-				if err == nil && workload.Status(&updatedWl) == workload.StatusPending {
+				if err == nil && workloadStatus(&updatedWl) == pending {
 					if !r.queues.AddOrUpdateWorkload(wlCopy) {
-						log.V(2).Info("LocalQueue for workload didn't exist or not active; ignored for now")
+						log.V(2).Info("Queue for workload didn't exist; ignored for now")
 					} else {
 						log.V(3).Info("Workload requeued after backoff")
 					}
 				}
 			})
 		}
-	case prevStatus == workload.StatusAdmitted && status == workload.StatusAdmitted && !equality.Semantic.DeepEqual(oldWl.Status.ReclaimablePods, wl.Status.ReclaimablePods):
+	case prevStatus == admitted && status == admitted && !equality.Semantic.DeepEqual(oldWl.Status.ReclaimablePods, wl.Status.ReclaimablePods):
 		// trigger the move of associated inadmissibleWorkloads, if there are any.
 		r.queues.QueueAssociatedInadmissibleWorkloadsAfter(ctx, wl, func() {
 			// Update the workload from cache while holding the queues lock
